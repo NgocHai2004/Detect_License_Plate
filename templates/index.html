@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống nhận diện biển số xe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .upload-section, .results-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 2px solid #f0f0f0;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 0px;
+        }
+
+        .file-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px dashed #3498db;
+            border-radius: 10px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .file-input:hover {
+            border-color: #2980b9;
+            background: #e3f2fd;
+            transform: translateY(-2px);
+        }
+
+        .file-input input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .media-container {
+            position: relative;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .media-element {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            background: #000;
+        }
+
+        .video-controls {
+            position: absolute;
+            bottom: -50px;
+            left: 35%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 25px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .results-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .result-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .result-time {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .result-text {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .result-confidence {
+            font-size: 0.9em;
+            color: #27ae60;
+            margin-top: 5px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 Hệ thống nhận diện biển số xe</h1>
+            <p>Sử dụng YOLO + EasyOCR để nhận diện biển số từ ảnh và video</p>
+        </div>
+
+        <div class="main-content">
+            <div class="upload-section">
+                <h2 class="section-title">📁 Tải lên video/ảnh</h2>
+
+                <div class="file-input-wrapper">
+                    <div class="file-input">
+                        <input type="file" id="fileInput" accept="image/*,video/*">
+                        <span>🖼️ Chọn ảnh hoặc video</span>
+                    </div>
+                </div>
+
+                <div id="mediaContainer" class="media-container" style="display: none;">
+                    <img id="imageDisplay" class="media-element" style="display: none;">
+                    <video id="videoDisplay" class="media-element" controls style="display: none;"></video>
+                    
+                </div>
+
+                <div id="currentFrame" style="margin-bottom: 20px;">
+                    <canvas id="captureCanvas" style="max-width: 100%; border-radius: 8px; display: none;"></canvas>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <div id="videoControls" class="video-controls" style="display: none;">
+                        <button class="btn btn-success" onclick="captureFrame()">📸 Chụp khung hình</button>
+                        <button class="btn btn-danger" onclick="pauseVideo()">⏸️ Dừng</button>
+                    </div>
+                    <button class="btn" onclick="processMedia()" id="processBtn" disabled>
+                        🔍 Nhận diện biển số
+                    </button>
+                    <div id="previewBox" style="margin-top: 20px;">
+        <h3>Ảnh đã vẽ Bounding Box:</h3>
+        <img id="imageWithBox" style="display: none; max-width: 100%; border: 2px solid #333;" />
+
+        </div>
+                </div>
+
+                <div id="status"></div>
+            </div>
+
+            <div class="results-section">
+                <h2 class="section-title">📊 Kết quả nhận diện</h2>
+                
+                <div class="results-container" id="resultsContainer">
+                    <div style="text-align: center; color: #7f8c8d; padding: 40px;">
+                        <p>🎯 Tải video và chụp khung hình để nhận diện</p>
+                        <p style="margin-top: 10px; font-size: 0.9em;">
+                            🟢 <strong>Xe vào:</strong> Biển số không có trong detect.csv<br>
+                            🔴 <strong>Xe ra:</strong> Biển số đã có trong detect.csv
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentFile = null;
+        let results = [];
+        let isProcessing = false;
+        let currentVideoTime = 0;
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing...');
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput) {
+                fileInput.addEventListener('change', handleFileSelect);
+                console.log('File input event listener added');
+            } else {
+                console.error('File input not found!');
+            }
+            
+            // Show initial guide
+            setTimeout(() => {
+                showStatus('💡 Hướng dẫn: 1) Chọn ảnh/video 2) Chụp khung hình (video) 3) Nhận diện biển số!', 'warning');
+            }, 1000);
+        });
+
+        function handleFileSelect(event) {
+            console.log('File selection started...');
+            const file = event.target.files[0];
+            
+            if (!file) {
+                console.log('No file selected');
+                return;
+            }
+
+            console.log('Selected file:', file.name, 'Type:', file.type, 'Size:', file.size);
+            
+            // Check file size (limit to 100MB)
+            if (file.size > 100 * 1024 * 1024) {
+                showStatus('File quá lớn! Vui lòng chọn file nhỏ hơn 100MB.', 'error');
+                return;
+            }
+
+            currentFile = file;
+            
+            // Get DOM elements
+            const mediaContainer = document.getElementById('mediaContainer');
+            const imageDisplay = document.getElementById('imageDisplay');
+            const videoDisplay = document.getElementById('videoDisplay');
+            const videoControls = document.getElementById('videoControls');
+            const processBtn = document.getElementById('processBtn');
+
+            // Reset previous display
+            imageDisplay.style.display = 'none';
+            videoDisplay.style.display = 'none';
+            videoControls.style.display = 'none';
+            imageDisplay.src = '';
+            videoDisplay.src = '';
+
+            if (file.type.startsWith('image/')) {
+                console.log('Processing image file...');
+                processImageFile(file, imageDisplay, mediaContainer, processBtn);
+            } else if (file.type.startsWith('video/')) {
+                console.log('Processing video file...');
+                processVideoFile(file, videoDisplay, videoControls, mediaContainer, processBtn);
+            } else {
+                console.log('Unsupported file type:', file.type);
+                showStatus('Định dạng file không được hỗ trợ! Vui lòng chọn ảnh (.jpg, .png) hoặc video (.mp4, .avi, .mov).', 'error');
+                currentFile = null;
+            }
+        }
+
+        function processImageFile(file, imageDisplay, mediaContainer, processBtn) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                console.log('Image loaded successfully');
+                imageDisplay.src = e.target.result;
+                imageDisplay.style.display = 'block';
+                mediaContainer.style.display = 'block';
+                processBtn.disabled = false;
+                showStatus('✅ Ảnh đã được tải thành công! Bấm "Nhận diện biển số" để bắt đầu.', 'success');
+            };
+            
+            reader.onerror = function(e) {
+                console.error('Error reading image:', e);
+                showStatus('❌ Lỗi khi tải ảnh! Vui lòng thử lại.', 'error');
+                currentFile = null;
+            };
+            
+            reader.readAsDataURL(file);
+        }
+
+        function processVideoFile(file, videoDisplay, videoControls, mediaContainer, processBtn) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                console.log('Video loaded successfully');
+                videoDisplay.src = e.target.result;
+                videoDisplay.style.display = 'block';
+                videoControls.style.display = 'flex';
+                mediaContainer.style.display = 'block';
+                processBtn.disabled = false;
+                showStatus('✅ Video đã được tải thành công! Phát video và chụp khung hình để nhận diện.', 'success');
+            };
+            
+            reader.onerror = function(e) {
+                console.error('Error reading video:', e);
+                showStatus('❌ Lỗi khi tải video! Vui lòng thử lại.', 'error');
+                currentFile = null;
+            };
+            
+            // Add video event listeners
+            videoDisplay.addEventListener('timeupdate', function() {
+                currentVideoTime = this.currentTime;
+            });
+            
+            videoDisplay.addEventListener('loadedmetadata', function() {
+                console.log('Video metadata loaded - Duration:', this.duration);
+            });
+            
+            reader.readAsDataURL(file);
+        }
+
+        function captureFrame() {
+            const video = document.getElementById('videoDisplay');
+            const canvas = document.getElementById('captureCanvas');
+            const ctx = canvas.getContext('2d');
+
+            if (video.paused || video.ended) {
+                showStatus('⚠️ Vui lòng phát video trước khi chụp khung hình!', 'warning');
+                return;
+            }
+
+            // Set canvas size to match video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Draw current video frame to canvas
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Show captured frame
+            canvas.style.display = 'block';
+            showStatus(`📸 Đã chụp khung hình tại ${formatTime(currentVideoTime)}`, 'success');
+
+            // Auto process after capture
+            setTimeout(() => {
+                processCurrentFrame();
+            }, 500);
+        }
+
+        function pauseVideo() {
+            const video = document.getElementById('videoDisplay');
+            const button = event.target;
+            
+            if (video.paused) {
+                video.play();
+                button.innerHTML = '⏸️ Dừng';
+            } else {
+                video.pause();
+                button.innerHTML = '▶️ Phát';
+            }
+        }
+
+        function processMedia() {
+            if (!currentFile) {
+                showStatus('❌ Vui lòng chọn file trước!', 'error');
+                return;
+            }
+
+            if (isProcessing) {
+                console.log('Already processing, ignoring request');
+                return;
+            }
+
+            if (currentFile.type.startsWith('image/')) {
+                processImage();
+            } else if (currentFile.type.startsWith('video/')) {
+                processCurrentFrame();
+            }
+        }
+
+        function processImage() {
+            isProcessing = true;
+            showStatus('🔍 Đang nhận diện biển số từ ảnh...', 'warning');
+            updateProcessButton(true);
+
+            const imageDisplay = document.getElementById('imageDisplay');
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = imageDisplay.naturalWidth;
+            canvas.height = imageDisplay.naturalHeight;
+            ctx.drawImage(imageDisplay, 0, 0);
+            
+            const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+            fetch('http://localhost:5000/detect_image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    image: imageDataUrl
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('API response:', data);
+
+                if (data.success) {
+                    if (data.detections && data.detections.length > 0) {
+                        data.detections.forEach(detection => {
+                            const result = {
+                                plateNumber: detection.text,
+                                confidence: detection.combined_confidence || detection.confidence || 0,
+                                timestamp: null,
+                                type: 'image',
+                                datetime: new Date().toLocaleString('vi-VN'),
+                                status: detection.status || 'unknown'
+                            };
+
+                            addResult(result);
+                        });
+
+                        // ✅ HIỂN THỊ ẢNH CÓ BOUNDING BOX
+                        if (data.image_with_box) {
+                            const imageWithBox = document.getElementById("imageWithBox");
+                            imageWithBox.src = "data:image/jpeg;base64," + data.image_with_box;
+                            imageWithBox.style.display = "block";
+                        }
+
+                        showStatus(`✅ Phát hiện ${data.detections.length} biển số từ ảnh!`, 'success');
+                    } else {
+                        showStatus('⚠️ Không phát hiện biển số nào trong ảnh!', 'warning');
+                    }
+                } else {
+                    showStatus('❌ Lỗi: ' + (data.error || 'Không thể nhận diện'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('API Error:', error);
+                showStatus('❌ Lỗi kết nối với server! Vui lòng kiểm tra server backend.', 'error');
+            })
+            .finally(() => {
+                isProcessing = false;
+                updateProcessButton(false);
+            });
+        }
+
+
+        function processCurrentFrame() {
+            const canvas = document.getElementById('captureCanvas');
+
+            if (!canvas || canvas.style.display === 'none') {
+                showStatus('⚠️ Vui lòng chụp khung hình trước khi nhận diện!', 'warning');
+                return;
+            }
+
+            isProcessing = true;
+            showStatus('🔍 Đang nhận diện biển số từ khung hình...', 'warning');
+            updateProcessButton(true);
+
+            const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+            fetch('http://localhost:5000/detect_frame', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    image: imageDataUrl,
+                    video_time: currentVideoTime
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('API response:', data);
+
+                if (data.success && data.detections && data.detections.length > 0) {
+                    data.detections.forEach(detection => {
+                        const result = {
+                            plateNumber: detection.text,
+                            confidence: detection.confidence || 0,
+                            timestamp: currentVideoTime,
+                            type: 'video',
+                            datetime: new Date().toLocaleString('vi-VN'),
+                            status: detection.status || 'unknown'
+                        };
+                        addResult(result);
+                    });
+
+                    showStatus(`✅ Phát hiện ${data.detections.length} biển số từ video!`, 'success');
+
+                    // ✅ HIỂN THỊ ẢNH CÓ BOUNDING BOX
+                    if (data.image_with_box) {
+                        const imageWithBox = document.getElementById("imageWithBox");
+                        imageWithBox.src = "data:image/jpeg;base64," + data.image_with_box;
+                        imageWithBox.style.display = "block";
+                    }
+
+                } else {
+                    showStatus('⚠️ Không phát hiện biển số nào trong khung hình!', 'warning');
+                }
+            })
+            .catch(error => {
+                console.error('API Error:', error);
+                showStatus('❌ Lỗi kết nối với server! Vui lòng kiểm tra server backend.', 'error');
+            })
+            .finally(() => {
+                isProcessing = false;
+                updateProcessButton(false);
+            });
+        }
+
+
+        function addResult(result) {
+            results.push(result);
+            
+            const resultsContainer = document.getElementById('resultsContainer');
+            
+            // Clear initial message on first result
+            if (results.length === 1) {
+                resultsContainer.innerHTML = '';
+            }
+
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'result-item';
+            
+            // Style based on status
+            let statusIcon = '🔍';
+            let statusText = 'Nhận diện';
+            let statusColor = '#3498db';
+            
+            if (result.status === 'exit') {
+                statusIcon = '🚪';
+                statusText = 'Xe ra';
+                statusColor = '#e74c3c';
+                resultDiv.style.borderLeft = '4px solid #e74c3c';
+                resultDiv.style.background = '#fdf2f2';
+                showStatus(`🚗 Xe ra: ${result.plateNumber} (có trong hệ thống)`, 'warning');
+            } else if (result.status === 'enter') {
+                statusIcon = '🚘';
+                statusText = 'Xe vào';
+                statusColor = '#27ae60';
+                resultDiv.style.borderLeft = '4px solid #27ae60';
+                resultDiv.style.background = '#f0fff4';
+                showStatus(`🎯 Xe vào: ${result.plateNumber} (không có trong hệ thống)`, 'success');
+            }
+            
+            let timeInfo = '';
+            if (result.type === 'video' && result.timestamp !== null) {
+                timeInfo = `<div class="result-time">⏱️ Thời gian: ${formatTime(result.timestamp)}</div>`;
+            }
+            
+            resultDiv.innerHTML = `
+                <div class="result-time">📅 ${result.datetime}</div>
+                ${timeInfo}
+                <div class="result-text">${statusIcon} ${statusText}: ${result.plateNumber}</div>
+                <div class="result-confidence">✅ Độ tin cậy: ${(result.confidence * 100).toFixed(1)}%</div>
+            `;
+            
+            resultsContainer.appendChild(resultDiv);
+            resultsContainer.scrollTop = resultsContainer.scrollHeight;
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        function updateProcessButton(processing) {
+            const btn = document.getElementById('processBtn');
+            if (processing) {
+                btn.innerHTML = '<span class="loading"></span>Đang xử lý...';
+                btn.disabled = true;
+            } else {
+                btn.innerHTML = '🔍 Nhận diện biển số';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

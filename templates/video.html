@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎥 Kết quả video</title>
+  <style>
+    body { font-family: Arial; padding: 30px; background: #f9f9f9; text-align: center; }
+    h1 { color: #333; }
+    p { padding: 10px; background: #f0f0f0; border-radius: 6px; display: inline-block; }
+    a { display: inline-block; margin-top: 20px; color: #007bff; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <h1>🎥 Video tải lên</h1>
+  {% if msg %}
+    <p>{{ msg }}</p>
+  {% else %}
+    <p>❌ Chưa có video nào được tải lên.</p>
+  {% endif %}
+  <a href="/">🔙 Quay lại trang chính</a>
+</body>
+</html>
