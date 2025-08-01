@@ -130,6 +130,16 @@ def detect_image():
         })
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+    
+@app.route("/reset_csv", methods=["POST"])
+def reset_csv():
+    try:
+        with open(CSV_PATH, mode="w", newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow(["plate", "datetime"])  # Ghi lại tiêu đề cột
+        return jsonify({"success": True, "message": "File detect.csv đã được reset!"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 # === API video frame ===
 @app.route("/detect_frame", methods=["POST"])

@@ -311,7 +311,7 @@
 
             <div class="results-section">
                 <h2 class="section-title">📊 Kết quả nhận diện</h2>
-                
+                <button class="btn btn-danger" onclick="resetCSV()">Reset</button>
                 <div class="results-container" id="resultsContainer">
                     <div style="text-align: center; color: #7f8c8d; padding: 40px;">
                         <p>🎯 Tải video và chụp khung hình để nhận diện</p>
@@ -394,6 +394,46 @@
                 currentFile = null;
             }
         }
+        function resetCSV() {
+            if (!confirm("Bạn có chắc chắn muốn reset file detect.csv và xoá kết quả hiển thị không?")) return;
+
+            fetch('http://localhost:5000/reset_csv', {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Xoá kết quả giao diện
+                    results = [];
+                    const resultsContainer = document.getElementById('resultsContainer');
+                    resultsContainer.innerHTML = `
+                        <div style="text-align: center; color: #7f8c8d; padding: 40px;">
+                            <p>🎯 Tải video và chụp khung hình để nhận diện</p>
+                            <p style="margin-top: 10px; font-size: 0.9em;">
+                                🟢 <strong>Xe vào:</strong> Biển số không có trong detect.csv<br>
+                                🔴 <strong>Xe ra:</strong> Biển số đã có trong detect.csv
+                            </p>
+                        </div>
+                    `;
+
+                    // Ẩn ảnh có bounding box
+                    const imageWithBox = document.getElementById("imageWithBox");
+                    if (imageWithBox) {
+                        imageWithBox.src = "";
+                        imageWithBox.style.display = "none";
+                    }
+
+                    showStatus("✅ Đã reset detect.csv và xoá kết quả hiển thị!", "success");
+                } else {
+                    showStatus("❌ Lỗi khi reset: " + data.error, "error");
+                }
+            })
+            .catch(err => {
+                console.error("Reset CSV error:", err);
+                showStatus("❌ Không thể kết nối đến server!", "error");
+            });
+        }
+
 
         function processImageFile(file, imageDisplay, mediaContainer, processBtn) {
             const reader = new FileReader();
